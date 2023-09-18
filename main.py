@@ -16,22 +16,22 @@ while True:
     # Checking if schedule just ended
     if now.time().strftime('%H:%M:%S') > datetime.datetime.strptime(current_schedule[3], '%H:%M:%S').time():
         # Turn LED yellow (busy)
+
         # Notify teacher and parents
         attended = machine.get_attendance(now.date(), current_schedule[0])
         absents = machine.get_absents(now.date(), current_schedule[0])
+
         # Send list of attended and absents to teacher
         teacher = machine.get_teacher(current_schedule[4])
-        teacher_message = f'''
-Attendance - {now.date().month} {now.date().day}, {now.date().year}
-{current_schedule[1]} ({current_schedule[2]} - {current_schedule[3]})
+        teacher_message = f'Attendance - {now.date().month} {now.date().day}, {now.date().year}\n{current_schedule[1]} ({current_schedule[2]} - {current_schedule[3]})'
 
-'''
         for student in attended:
             teacher_message += f'{student[0]} ({student[1]}) - {student[2]}\n'
 
         teacher_message += '\nAbsent Students:\n' + '\n'.join(absents)
         # Send message to teacher
 
+        # Send absent to parent
         for student in absents:
             parent_message = f'{student[0]} ({student[1]}) missed the {current_schedule[1]} subject'
             # Send message to guardian (student[2])

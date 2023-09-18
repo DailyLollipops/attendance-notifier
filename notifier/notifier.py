@@ -5,7 +5,6 @@ import datetime
 
 from pyzbar.pyzbar import decode
 from .database import NotifierDatabase
-from .sim808 import Sim808
 
 class Notifier:
     '''
@@ -13,20 +12,17 @@ class Notifier:
 
     Parameters:
     database (str) : Database path
-    port (str) : Serial port of SIM808 module
     '''
 
-    def __init__(self, database, port):
+    def __init__(self, database):
         '''
         Initialize a notifier object
 
         Parameters:
         database (str) : Database path
-        port (str) : Serial port of SIM808 module
         '''
         self.qrcode_scanner = cv2.VideoCapture(0)
         self.database = NotifierDatabase(database)
-        self.gsm = Sim808(port)
 
     def __decodeframe(self, image):
         '''
@@ -60,16 +56,6 @@ class Notifier:
                 break
         cv2.destroyAllWindows()
         return data
-    
-    def send_sms(self, number: str, message: str):
-        '''
-        Send a SMS message
-
-        Parameters:
-        number (str) : Number to send message to. Should contain country code
-        message (str) : Message to send
-        '''
-        return self.gsm.send_sms(number, message)
 
     
     #####################################
