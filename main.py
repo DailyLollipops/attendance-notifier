@@ -1,7 +1,7 @@
 import notifier
 import datetime
 
-machine = notifier.Notifier('attendance_notifier/db.sqlite3')
+machine = notifier.Notifier('attendance_notifier/db.sqlite3', '/dev/ttyS0')
 
 current_schedule = None
 
