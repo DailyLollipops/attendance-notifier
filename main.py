@@ -14,7 +14,7 @@ while True:
         current_schedule = machine.get_current_schedule()
 
     # Checking if schedule just ended
-    if now.time().strftime('%H:%M:%S') > datetime.datetime.strptime(current_schedule[3], '%H:%M:%S').time():
+    if now.time() > datetime.datetime.strptime(current_schedule[3], '%H:%M:%S').time():
         # Turn LED yellow (busy)
 
         # Notify teacher and parents
