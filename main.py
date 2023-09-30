@@ -29,7 +29,7 @@ while True:
             logging.info(f'Current Schedule ID: {current_schedule[0]}')
 
         # Checking if schedule just ended
-        if now.time().strftime('%H:%M:%S') > datetime.datetime.strptime(current_schedule[3], '%H:%M:%S').time():
+        if now.time() > datetime.datetime.strptime(current_schedule[3], '%H:%M:%S').time():
             # Turn LED yellow (busy)
             machine.change_led_color('yellow')
 
