@@ -3,8 +3,11 @@ import numpy
 import sqlite3
 import datetime
 
+import RPi.GPIO as GPIO
+
 from pyzbar.pyzbar import decode
 from .database import NotifierDatabase
+from .sim808 import Sim808
 
 class Notifier:
     '''
@@ -12,17 +15,27 @@ class Notifier:
 
     Parameters:
     database (str) : Database path
+    port (str) : Serial port of SIM808 module
+    rgb_pins (tuple) : RGBY pin (R, G, B, Y), follows BCM pinout
     '''
 
-    def __init__(self, database):
+    def __init__(self, database: str, port: str, rgby_pins: tuple):
         '''
         Initialize a notifier object
 
         Parameters:
         database (str) : Database path
+        port (str) : Serial port of SIM808 module
+        rgb_pins (tuple) : RGBY pin (R, G, B, Y), follows BCM pinout
         '''
         self.qrcode_scanner = cv2.VideoCapture(0)
         self.database = NotifierDatabase(database)
+        self.gsm = Sim808(port)
+        GPIO.setwarnings(False)
+        GPIO.setmode(GPIO.BCM)
+        self.rgby_pins = rgby_pins
+        for pin in rgby_pins:
+            GPIO.setup(pin, GPIO.OUT)
 
     def __decodeframe(self, image):
         '''
@@ -56,7 +69,43 @@ class Notifier:
                 break
         cv2.destroyAllWindows()
         return data
+    
+    def send_sms(self, number: str, message: str):
+        '''
+        Send a SMS message
 
+        Parameters:
+        number (str) : Number to send message to. Should contain country code
+        message (str) : Message to send
+        '''
+        return self.gsm.send_sms(number, message)
+
+    def change_led_color(self, color: str):
+        '''
+        Change LED color
+
+        Parameters:
+        color (str) : Color. Can be `red`, `blue`, `green` or `yellow`. Else turn of all LED.
+        '''
+        self.turn_off_led()
+        if color == 'red':
+            GPIO.output(self.rgby_pins[0], GPIO.HIGH)
+        elif color == 'green':
+            GPIO.output(self.rgby_pins[1], GPIO.HIGH)
+        elif color == 'blue':
+            GPIO.output(self.rgby_pins[2], GPIO.HIGH)
+        elif color == 'yellow':
+            GPIO.output(self.rgby_pins[3], GPIO.HIGH)
+
+    def turn_off_led(self):
+        '''
+        Turn off RGB LED
+        '''
+        GPIO.output(self.rgby_pins[0], GPIO.LOW)
+        GPIO.output(self.rgby_pins[1], GPIO.LOW)
+        GPIO.output(self.rgby_pins[2], GPIO.LOW)
+        GPIO.output(self.rgby_pins[3], GPIO.LOW)
+    
     
     #####################################
     #                                   #
