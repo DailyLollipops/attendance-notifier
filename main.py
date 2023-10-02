@@ -11,7 +11,7 @@ logging.basicConfig(filename="attendance-notifier.log",
 machine = notifier.Notifier(
     database='attendance_notifier/db.sqlite3', 
     port='/dev/ttyUSB0', 
-    rgb_pins=(18, 23, 24, 17))
+    rgby_pins=(18, 23, 24, 17))
 
 current_schedule = None
 
