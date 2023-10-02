@@ -169,7 +169,7 @@ class Notifier:
         '''
         return self.database.get_previous_schedule(day, time)
     
-    def get_attendance(self, date: datetime.date, schedule_id: str|int):
+    def get_attendance(self, date: datetime.date, schedule_id):
         '''
         Get list of students who attend a subject on specific date
 
@@ -182,7 +182,7 @@ class Notifier:
         '''
         return self.database.get_attendance(date, schedule_id)
 
-    def get_absents(self, date : datetime.date, schedule_id: str|int):
+    def get_absents(self, date : datetime.date, schedule_id):
         '''
         Get list of students who are absent in a subject on specific date
 
@@ -195,7 +195,7 @@ class Notifier:
         '''
         return self.database.get_absents(date, schedule_id)
     
-    def attendance_exists(self, student_id: str|int, schedule_id: str|int, date: datetime.date):
+    def attendance_exists(self, student_id, schedule_id, date: datetime.date):
         '''
         Check if an attendance by student exists
 
@@ -209,7 +209,7 @@ class Notifier:
         '''
         return self.database.attendance_exists(student_id, schedule_id, date)
     
-    def add_attendance(self, student_id: str|int, schedule_id: str|int, date: datetime.date, time_in: datetime.time):
+    def add_attendance(self, student_id, schedule_id, date: datetime.date, time_in: datetime.time):
         '''
         Add attendance to database
 
@@ -223,7 +223,7 @@ class Notifier:
         '''
         return self.database.add_attendance(student_id, schedule_id, date, time_in)
     
-    def get_student(self, student_id: str|int):
+    def get_student(self, student_id):
         '''
         Get a student by primary key
 
@@ -241,7 +241,7 @@ class Notifier:
         '''
         return self.database.get_student_by_lrn(lrn)
 
-    def get_teacher(self, teacher_id: str|int):
+    def get_teacher(self, teacher_id):
         '''
         Get a teacher by primary key
 
