@@ -258,3 +258,18 @@ class NotifierDatabase:
         result = self.cursor.fetchone()
         return result
     
+    def get_all_attendance(self):
+        '''
+        Return all attendances in attendance table
+        '''
+        query = 'SELECT * FROM core_attendance'
+        self.cursor.execute(query)
+        results = self.cursor.fetchall()
+        return results
+    
+    def truncate_attendances(self):
+        '''
+        Delete all records on attendance table
+        '''
+        query = 'DELETE FROM core_attendance'
+        self.cursor.execute(query)

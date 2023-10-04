@@ -55,18 +55,36 @@ class Notifier:
             data = obj.data.decode("utf-8")
             return data
         
-    def scan_qrcode(self):
+    def scan_qrcode(self, timeout: float = 0):
         '''
-        Opens an OpenCV window and scans QR Code   
+        Opens an OpenCV window and scans QR Code 
+
+        Parameters:
+        timeout (float) : Timeout for scanning qrcode. Set to 0 to wait indefinitely
+        
+        Returns:
+        data (str | None) : QRCode data. Returns None if timeout reached
         '''
-        data = ''
-        while True:
-            ret, frame = self.qrcode_scanner.read()
-            data = self.__decodeframe(frame)
-            cv2.imshow('Image', frame)
-            cv2.waitKey(1)
-            if(data != None):
-                break
+        data = None
+        if timeout <= 0:
+            while True:
+                ret, frame = self.qrcode_scanner.read()
+                data = self.__decodeframe(frame)
+                cv2.imshow('Image', frame)
+                cv2.waitKey(1)
+                if(data != None):
+                    break
+        else:
+            start = datetime.datetime.now()
+            while True:
+                if datetime.datetime.now() - start >= datetime.timedelta(seconds=timeout):
+                    break
+                ret, frame = self.qrcode_scanner.read()
+                data = self.__decodeframe(frame)
+                cv2.imshow('Image', frame)
+                cv2.waitKey(1)
+                if(data != None):
+                    break
         cv2.destroyAllWindows()
         return data
     
@@ -258,4 +276,15 @@ class Notifier:
         tupple : (id, first_name, last_name, phone_number)
         '''
         return self.database.get_teacher(teacher_id)
+
+    def get_all_attendance(self):
+        '''
+        Return all attendances in attendance table
+        '''
+        return self.database.get_all_attendance()
     
+    def truncate_attendances(self):
+        '''
+        Delete all records on attendance table
+        '''
+        return self.database.truncate_attendances()

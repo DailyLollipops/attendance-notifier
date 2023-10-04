@@ -1,10 +1,11 @@
 import notifier
 import datetime
 import logging
+import traceback
 
 logging.basicConfig(filename="attendance-notifier.log",
                     format='%(asctime)s [%(levelname)s] - %(message)s',
-                    filemode='a')
+                    filemode='a', level=logging.DEBUG)
 
 # For RGB LED wiring, follow : https://www.instructables.com/Raspberry-Pi-Tutorial-How-to-Use-a-RGB-LED/
 
@@ -26,10 +27,13 @@ while True:
         # Check if current schedule is not yet assigned
         if not current_schedule:
             current_schedule = machine.get_current_schedule()
-            logging.info(f'Current Schedule ID: {current_schedule[0]}')
+            if current_schedule:
+                logging.info(f'Current Schedule ID: {current_schedule}')
+            else:
+                current_schedule = None
 
         # Checking if schedule just ended
-        if now.time() > datetime.datetime.strptime(current_schedule[3], '%H:%M:%S').time():
+        if current_schedule and now.time() > datetime.datetime.strptime(current_schedule[3], '%H:%M:%S').time():
             # Turn LED yellow (busy)
             machine.change_led_color('yellow')
 
@@ -37,20 +41,39 @@ while True:
             attended = machine.get_attendance(now.date(), current_schedule[0])
             absents = machine.get_absents(now.date(), current_schedule[0])
 
+            logging.info('Schedule just ended')
+            logging.info(f'Student attended: {attended}')
+            logging.info(f'Absent Students: {absents}')
+
             # Send list of attended and absents to teacher
             teacher = machine.get_teacher(current_schedule[4])
             teacher_message = f'Attendance - {now.date().month} {now.date().day}, {now.date().year}\n{current_schedule[1]} ({current_schedule[2]} - {current_schedule[3]})'
 
-            for student in attended:
-                teacher_message += f'{student[0]} ({student[1]}) - {student[2]}\n'
+            if attended:
+                for student in attended:
+                    teacher_message += f'{student[0]} ({student[1]}) - {student[2]}\n'
+            else:
+                teacher_message += 'No student has attended the class!'
 
-            teacher_message += '\nAbsent Students:\n' + '\n'.join(absents)
+            if absents: 
+                teacher_message += '\nAbsent Students:\n'
+                for student in absents:
+                    teacher_message += f'{student[0]} ({student[1]})\n'
+            else:
+                teacher_message += 'No student is absent in class!'
+                
             machine.send_sms(teacher[3], teacher_message)
+            logging.info(f'Sent message to teacher:')
+            logging.info(f'Message: {teacher_message}')
+            logging.info(f'Number: {teacher[3]}')
 
             # Send absent to parent
             for student in absents:
                 parent_message = f'{student[0]} ({student[1]}) missed the {current_schedule[1]} subject'
                 machine.send_sms(student[2], parent_message)
+                logging.info('Sent message to parent:')
+                logging.info(f'Message: {parent_message}')
+                logging.info(f'Number: {student[2]}')
 
             # Turn LED blue (ready)
             machine.change_led_color('blue')
@@ -61,15 +84,24 @@ while True:
             continue
 
         # Scan qrcode
-        lrn = machine.scan_qrcode()
-        if machine.lrn_exists(lrn):
-            student = machine.get_student_by_lrn(lrn)
-            machine.add_attendance(student[0], current_schedule[0], now.date(), now.time().strftime('%H:%M:%S'))
-            machine.change_led_color('green')
-            logging.info(f'LRN matched: {lrn}')
-        else:
-            machine.change_led_color('red')
-            logging.warning(f'LRN mismatched: {lrn}')
+        if current_schedule:
+            lrn = machine.scan_qrcode(timeout=1)
+            if not lrn:
+                continue
+            if machine.lrn_exists(lrn):
+                student = machine.get_student_by_lrn(lrn)
+                if not machine.attendance_exists(student[0], current_schedule[0], now.date()):
+                    machine.add_attendance(student[0], current_schedule[0], now.date(), now.time().strftime('%H:%M:%S'))
+                    machine.change_led_color('green')
+                    logging.info(f'LRN matched: {lrn}')
+                else:
+                    logging.warning(f'LRN already attended: {lrn}')
+            else:
+                machine.change_led_color('red')
+                logging.warning(f'LRN mismatched: {lrn}')
     except Exception as e:
         machine.change_led_color('red')
         logging.error(f'Exception occured: {e}')
+        logging.error(f'Traceback: {traceback.print_exc()}')
+        break
+        
