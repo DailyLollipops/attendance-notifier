@@ -125,6 +125,15 @@ class Notifier:
         '''
         return self.database.lrn_exists(lrn)
 
+    def get_all_schedules(self):
+        '''
+        Get schedule based on current date and time
+
+        Returns:
+        tupple : (id, subject, start, end, teacher_id)
+        '''
+        return self.database.get_all_schedules()
+    
     def get_current_schedule(self):
         '''
         Get schedule based on current date and time
