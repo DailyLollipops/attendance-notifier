@@ -38,6 +38,18 @@ class NotifierDatabase:
         else:
             return False
         
+    def get_all_schedules(self):
+        '''
+        Get all existing schedules
+
+        Returns:
+        list of tupple : (id, subject, start, end, teacher_id)
+        '''
+        query = 'SELECT id, subject, start, end, teacher_id FROM core_schedule'
+        self.cursor.execute(query)
+        results = self.cursor.fetchall()
+        return results
+        
     def get_current_schedule(self):
         '''
         Get schedule based on current date and time
