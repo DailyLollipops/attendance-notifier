@@ -2,6 +2,7 @@ import notifier
 import datetime
 import logging
 import traceback
+import subprocess
 
 logging.basicConfig(filename="attendance-notifier.log",
                     format='%(asctime)s [%(levelname)s] - %(message)s',
@@ -13,6 +14,16 @@ machine = notifier.Notifier(
     database='attendance_notifier/db.sqlite3', 
     port='/dev/ttyUSB0', 
     rgby_pins=(18, 23, 24, 17))
+
+# Set machine time
+com = subprocess.run(
+    ['sudo', 'date', '-s', f'{machine.get_time().strftime("%y-%m-%d %H:%M:%S")}'], 
+    capture_output=True,
+    text=True,
+    check=False)
+
+logging.info(com.stdout)
+logging.error(com.stderr)
 
 current_schedule = None
 
@@ -47,7 +58,7 @@ while True:
 
             # Send list of attended and absents to teacher
             teacher = machine.get_teacher(current_schedule[4])
-            teacher_message = f'Attendance - {now.date().month} {now.date().day}, {now.date().year}\n{current_schedule[1]} ({current_schedule[2]} - {current_schedule[3]})'
+            teacher_message = f'Attendance - {now.strftime("%B %d, %Y")}\n{current_schedule[1]} ({current_schedule[2]} - {current_schedule[3]})\n\n'
 
             if attended:
                 for student in attended:
@@ -61,7 +72,8 @@ while True:
                     teacher_message += f'{student[0]} ({student[1]})\n'
             else:
                 teacher_message += 'No student is absent in class!'
-                
+            
+            teacher_message += '\n\n\nThis is a generated message. Please do not reply!'
             machine.send_sms(teacher[3], teacher_message)
             logging.info(f'Sent message to teacher:')
             logging.info(f'Message: {teacher_message}')
@@ -70,6 +82,7 @@ while True:
             # Send absent to parent
             for student in absents:
                 parent_message = f'{student[0]} ({student[1]}) missed the {current_schedule[1]} subject'
+                parent_message += '\n\n\nThis is a generated message. Please do not reply!'
                 machine.send_sms(student[2], parent_message)
                 logging.info('Sent message to parent:')
                 logging.info(f'Message: {parent_message}')
@@ -94,8 +107,8 @@ while True:
                     machine.add_attendance(student[0], current_schedule[0], now.date(), now.time().strftime('%H:%M:%S'))
                     machine.change_led_color('green')
                     logging.info(f'LRN matched: {lrn}')
-                else:
-                    logging.warning(f'LRN already attended: {lrn}')
+                # else:
+                #     logging.warning(f'LRN already attended: {lrn}')
             else:
                 machine.change_led_color('red')
                 logging.warning(f'LRN mismatched: {lrn}')

@@ -97,6 +97,24 @@ class Notifier:
         message (str) : Message to send
         '''
         return self.gsm.send_sms(number, message)
+    
+    def read_unread_sms(self):
+        '''
+        Get unread sms
+
+        Returns:
+        sms (list): unread sms
+        '''
+        return self.gsm.read_unread_sms()
+    
+    def get_time(self):
+        '''
+        Get network date and time
+
+        Returns:
+        datetime (str) : Network date and time
+        '''
+        return self.gsm.get_time()
 
     def change_led_color(self, color: str):
         '''

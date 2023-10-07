@@ -1,5 +1,7 @@
 import serial
 import time
+import datetime
+import re
 
 class Sim808:
     '''
@@ -65,3 +67,37 @@ class Sim808:
         self.send_command('AT+CMGS="' + number + '"\r')
         time.sleep(0.5)
         self.send_command(message + '\x1A\r\n')
+        time.sleep(0.5)
+        print(self.read_response())
+
+    def read_unread_sms(self):
+        '''
+        Get unread sms
+
+        Returns:
+        sms (str): unread sms
+        '''
+        self.send_command('AT+CMGL=\"REC UNREAD\"\r')
+        time.sleep(1)
+        response = self.read_response()
+        return response
+
+    def get_time(self):
+        '''
+        Get network date and time
+
+        Returns:
+        datetime (str) : Network date and time
+        '''
+        self.send_sms("+639155882825", "CLOCK COMMAND")
+        start_time = datetime.datetime.now()
+        time.sleep(3)
+        messages = self.read_unread_sms()
+        end_time = datetime.datetime.now()
+        datetime_pattern = r'\d{2}/\d{2}/\d{2},\d{2}:\d{2}:\d{2}\+32'
+        match = re.findall(datetime_pattern, messages)
+        if match:
+            returned_datetime = datetime.datetime.strptime(match[-1].replace('+32',''),'%y/%m/%d,%H:%M:%S')
+            returned_datetime += (end_time - start_time)
+        return returned_datetime
+    
