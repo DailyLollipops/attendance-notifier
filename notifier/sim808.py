@@ -65,10 +65,15 @@ class Sim808:
         message (str) : Message to send
         '''
         self.send_command('AT+CMGS="' + number + '"\r')
-        time.sleep(0.5)
-        self.send_command(message + '\x1A\r\n')
-        time.sleep(0.5)
-        print(self.read_response())
+        time.sleep(0.1)
+        self.send_command(message + '\x1A\n')
+        print(f'Sleeping for {0.1*(len(message)/5)}s')
+        time.sleep(0.1*(len(message)/5))
+        response = self.read_response()
+        while 'OK' not in response:
+            time.sleep(0.1)
+            response = self.read_response()
+        print(response)
 
     def read_unread_sms(self):
         '''
@@ -101,3 +106,12 @@ class Sim808:
             returned_datetime += (end_time - start_time)
         return returned_datetime
     
+    def delete_all_sms(self):
+        '''
+        Delete all stored sms (inbox and sent)
+        '''
+        self.send_command('AT+CMGD=0,4')
+        time.sleep(5)
+        print(self.read_response())
+        time.sleep(10)
+        print(self.read_response())

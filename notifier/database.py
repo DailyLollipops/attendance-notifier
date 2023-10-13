@@ -121,10 +121,10 @@ class NotifierDatabase:
         schedule_id : Schedule ID
 
         Returns:
-        tupple : (student_name, lrn, time_in)
+        tupple : (student_name, lrn, guardian_phone_number, time_in)
         '''
         query = '''
-            SELECT s.first_name || ' ' || s.last_name AS student_name, s.LRN, a.time_in
+            SELECT s.first_name || ' ' || s.last_name AS student_name, s.LRN, s.guardian_phone_number, a.time_in
             FROM core_student s
             JOIN core_attendance a ON s.id = a.student_id
             JOIN core_schedule sch ON a.schedule_id = sch.id

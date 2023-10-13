@@ -115,6 +115,12 @@ class Notifier:
         datetime (str) : Network date and time
         '''
         return self.gsm.get_time()
+    
+    def delete_all_sms(self):
+        '''
+        Delete all stored sms (inbox and sent)
+        '''
+        return self.gsm.delete_all_sms()
 
     def change_led_color(self, color: str):
         '''
@@ -223,7 +229,7 @@ class Notifier:
         schedule_id : Schedule ID
 
         Returns:
-        tupple : (student_name, lrn, time_in)
+        tupple : (student_name, lrn, guardian_phone_number, time_in)
         '''
         return self.database.get_attendance(date, schedule_id)
 

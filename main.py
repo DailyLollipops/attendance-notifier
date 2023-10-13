@@ -1,8 +1,13 @@
+import sys
+
+sys.path.append('/home/roboscan/Documents/attendance-notifier')
+
 import notifier
 import datetime
 import logging
 import traceback
 import subprocess
+import time
 
 logging.basicConfig(filename="attendance-notifier.log",
                     format='%(asctime)s [%(levelname)s] - %(message)s',
@@ -24,6 +29,8 @@ com = subprocess.run(
 
 logging.info(com.stdout)
 logging.error(com.stderr)
+
+# machine.delete_all_sms()
 
 current_schedule = None
 
@@ -78,8 +85,19 @@ while True:
             logging.info(f'Sent message to teacher:')
             logging.info(f'Message: {teacher_message}')
             logging.info(f'Number: {teacher[3]}')
+            time.sleep(3)
 
-            # Send absent to parent
+            # Send message to parent of student that attended
+            for student in attended:
+                parent_message = f'{student[0]} ({student[1]}) attended the {current_schedule[1]} subject'
+                parent_message += '\n\n\nThis is a generated message. Please do not reply!'
+                machine.send_sms(student[2], parent_message)
+                logging.info('Sent message to parent:')
+                logging.info(f'Message: {parent_message}')
+                logging.info(f'Number: {student[2]}')
+                time.sleep(1)
+
+            # Send message to parent of absent students
             for student in absents:
                 parent_message = f'{student[0]} ({student[1]}) missed the {current_schedule[1]} subject'
                 parent_message += '\n\n\nThis is a generated message. Please do not reply!'
@@ -87,6 +105,7 @@ while True:
                 logging.info('Sent message to parent:')
                 logging.info(f'Message: {parent_message}')
                 logging.info(f'Number: {student[2]}')
+                time.sleep(1)
 
             # Turn LED blue (ready)
             machine.change_led_color('blue')
@@ -94,6 +113,7 @@ while True:
             # Remove assigned current schedule (renew)
             logging.info('Current Schedule ID: None')
             current_schedule = None
+            # machine.delete_all_sms()
             continue
 
         # Scan qrcode
@@ -104,9 +124,10 @@ while True:
             if machine.lrn_exists(lrn):
                 student = machine.get_student_by_lrn(lrn)
                 if not machine.attendance_exists(student[0], current_schedule[0], now.date()):
-                    machine.add_attendance(student[0], current_schedule[0], now.date(), now.time().strftime('%H:%M:%S'))
                     machine.change_led_color('green')
+                    machine.add_attendance(student[0], current_schedule[0], now.date(), now.time().strftime('%H:%M:%S'))
                     logging.info(f'LRN matched: {lrn}')
+                    time.sleep(3)
                 # else:
                 #     logging.warning(f'LRN already attended: {lrn}')
             else:
