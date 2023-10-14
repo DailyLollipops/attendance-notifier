@@ -15,6 +15,8 @@ logging.basicConfig(filename="attendance-notifier.log",
 
 # For RGB LED wiring, follow : https://www.instructables.com/Raspberry-Pi-Tutorial-How-to-Use-a-RGB-LED/
 
+logging.info('Starting process')
+
 machine = notifier.Notifier(
     database='attendance_notifier/db.sqlite3', 
     port='/dev/ttyUSB0', 
@@ -28,7 +30,6 @@ com = subprocess.run(
     check=False)
 
 logging.info(com.stdout)
-logging.error(com.stderr)
 
 # machine.delete_all_sms()
 
@@ -81,6 +82,7 @@ while True:
                 teacher_message += 'No student is absent in class!'
             
             teacher_message += '\n\n\nThis is a generated message. Please do not reply!'
+            logging.info(f'Sending message to {teacher[3]}')
             machine.send_sms(teacher[3], teacher_message)
             logging.info(f'Sent message to teacher:')
             logging.info(f'Message: {teacher_message}')
@@ -91,6 +93,7 @@ while True:
             for student in attended:
                 parent_message = f'{student[0]} ({student[1]}) attended the {current_schedule[1]} subject'
                 parent_message += '\n\n\nThis is a generated message. Please do not reply!'
+                logging.info(f'Sending message to {student[0]}')
                 machine.send_sms(student[2], parent_message)
                 logging.info('Sent message to parent:')
                 logging.info(f'Message: {parent_message}')
@@ -101,6 +104,7 @@ while True:
             for student in absents:
                 parent_message = f'{student[0]} ({student[1]}) missed the {current_schedule[1]} subject'
                 parent_message += '\n\n\nThis is a generated message. Please do not reply!'
+                logging.info(f'Sending message to {student[0]}')
                 machine.send_sms(student[2], parent_message)
                 logging.info('Sent message to parent:')
                 logging.info(f'Message: {parent_message}')
