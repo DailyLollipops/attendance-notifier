@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append('/home/roboscan/Documents/attendance-notifier')
+sys.path.append('/home/roboscan/attendance-notifier')
 
 import notifier
 import datetime
@@ -31,14 +31,19 @@ com = subprocess.run(
 
 logging.info(com.stdout)
 
-# machine.delete_all_sms()
+machine.delete_all_sms()
+logging.info('SMS deleted!')
 
 current_schedule = None
 
 while True:
     try:
-        # Turn LED blue (ready)
-        machine.change_led_color('blue')
+        if current_schedule:
+            # Turn LED blue (ready)
+            machine.change_led_color('blue')
+        else:
+            # Turn LED yellow (not ready)
+            machine.change_led_color('yellow')
 
         # Get current datetime
         now = datetime.datetime.now()
@@ -48,6 +53,8 @@ while True:
             current_schedule = machine.get_current_schedule()
             if current_schedule:
                 logging.info(f'Current Schedule ID: {current_schedule}')
+                machine.delete_all_sms()
+                logging.info('SMS deleted!')
             else:
                 current_schedule = None
 
@@ -117,7 +124,8 @@ while True:
             # Remove assigned current schedule (renew)
             logging.info('Current Schedule ID: None')
             current_schedule = None
-            # machine.delete_all_sms()
+            machine.delete_all_sms()
+            logging.info('SMS Deleted!')
             continue
 
         # Scan qrcode
@@ -132,14 +140,15 @@ while True:
                     machine.add_attendance(student[0], current_schedule[0], now.date(), now.time().strftime('%H:%M:%S'))
                     logging.info(f'LRN matched: {lrn}')
                     time.sleep(3)
-                # else:
-                #     logging.warning(f'LRN already attended: {lrn}')
+                else:
+                    machine.change_led_color('red')
+                    time.sleep(1)
             else:
                 machine.change_led_color('red')
                 logging.warning(f'LRN mismatched: {lrn}')
+                time.sleep(1)
     except Exception as e:
         machine.change_led_color('red')
         logging.error(f'Exception occured: {e}')
-        logging.error(f'Traceback: {traceback.print_exc()}')
-        break
+        logging.error(f'Traceback: {traceback.format_exc()}')
         

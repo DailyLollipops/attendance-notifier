@@ -25,11 +25,11 @@ class Sim808:
         '''
         Check if SIM808 exists and functioning
         '''
-        self.send_command('AT\r')
+        self.send_command('AT\r\n')
         response = self.read_response()
         if('OK' not in response):
             raise Exception('Error starting sim808')
-        self.send_command('AT+CMGF=1\r')
+        self.send_command('AT+CMGF=1\r\n')
         self.read_response()
  
     def read_response(self):
@@ -82,7 +82,7 @@ class Sim808:
         Returns:
         sms (str): unread sms
         '''
-        self.send_command('AT+CMGL=\"REC UNREAD\"\r')
+        self.send_command('AT+CMGL=\"REC UNREAD\"\r\n')
         time.sleep(1)
         response = self.read_response()
         return response
@@ -110,8 +110,5 @@ class Sim808:
         '''
         Delete all stored sms (inbox and sent)
         '''
-        self.send_command('AT+CMGD=0,4')
+        self.send_command('AT+CMGD=1,4\r\n')
         time.sleep(5)
-        print(self.read_response())
-        time.sleep(10)
-        print(self.read_response())
